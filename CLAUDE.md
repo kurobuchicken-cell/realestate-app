@@ -59,3 +59,8 @@ VITE_SUPABASE_ANON_KEY=...
 ### 物件データ
 
 現在は `PropertiesPage.jsx` 内のダミーデータ (`DUMMY_PROPERTIES` 配列)。将来 Supabase の `properties` テーブルに移行する際はここを `supabase.from('properties').select()` に置き換える。
+
+## デプロイ情報
+
+- 本番URL：https://realestate-app-one-eta.vercel.app/login
+- Supabaseプロジェクト名：realestate-app
