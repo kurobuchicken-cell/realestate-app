@@ -1,0 +1,148 @@
+/* 物件一覧ページスタイル */
+.page {
+  min-height: 100vh;
+  background-color: #f5f7fa;
+}
+
+/* ヘッダー */
+.header {
+  background-color: #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  padding: 0 24px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.headerTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1a202c;
+  margin: 0;
+}
+
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.email {
+  font-size: 0.875rem;
+  color: #718096;
+}
+
+.signOutButton {
+  padding: 8px 16px;
+  background-color: transparent;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  color: #4a5568;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.signOutButton:hover {
+  background-color: #f7fafc;
+}
+
+/* メインコンテンツ */
+.main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
+
+.sectionTitle {
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: #1a202c;
+  margin: 0 0 4px;
+}
+
+.count {
+  font-size: 0.875rem;
+  color: #718096;
+  margin: 0 0 24px;
+}
+
+/* 物件カードグリッド */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+/* 物件カード */
+.card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.cardImagePlaceholder {
+  height: 160px;
+  background: linear-gradient(135deg, #e8f4fd, #dbeafe);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+}
+
+.cardBody {
+  padding: 16px;
+}
+
+.cardTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1a202c;
+  margin: 0 0 8px;
+  line-height: 1.4;
+}
+
+.cardArea {
+  font-size: 0.8125rem;
+  color: #718096;
+  margin: 0 0 12px;
+}
+
+.cardFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.rent {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #4f9cf9;
+}
+
+.rent small {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: #718096;
+}
+
+.badge {
+  font-size: 0.75rem;
+  background-color: #ebf8ff;
+  color: #2b6cb0;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-weight: 600;
+}

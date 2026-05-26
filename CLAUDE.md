@@ -4,59 +4,58 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**realestate-app** — ログイン機能付き不動産検索アプリ。ユーザーが会員登録・ログインし、物件を検索・閲覧できる Web アプリケーション。
+**realestate-app** — Supabase 認証付きの不動産検索 Web アプリ。メール＋パスワードで会員登録・ログインし、物件一覧をカード形式で閲覧できる。
 
-- バックエンド / 認証 / DB: **Supabase** (PostgreSQL + Auth + Storage)
-- フロントエンド: 未定（決定次第このファイルを更新すること）
+- フロントエンド: **React 18 + Vite**
+- 認証 / DB: **Supabase** (Auth)
+- ルーティング: **React Router v6**
+- スタイル: **CSS Modules** (各ページに `*.module.css`)
 
-## Supabase 構成
+## コマンド
+
+```bash
+npm run dev      # 開発サーバー起動 (http://localhost:5173)
+npm run build    # プロダクションビルド
+npm run preview  # ビルド成果物のプレビュー
+```
+
+## アーキテクチャ
+
+### 認証フロー
+
+```
+App.jsx
+ └─ AuthProvider (AuthContext)   ← Supabase セッションをグローバル管理
+     └─ BrowserRouter
+         ├─ /login       → LoginPage
+         ├─ /register    → RegisterPage
+         └─ /properties  → PrivateRoute → PropertiesPage
+```
+
+`AuthContext` が `supabase.auth.onAuthStateChange` を購読し、`user` と `loading` をアプリ全体に提供する。`PrivateRoute` は `loading === true` の間は何も描画せず、セッション確認完了後に未ログインなら `/login` へリダイレクトする。
+
+### ディレクトリ構成
+
+```
+src/
+├── lib/supabaseClient.js     # createClient の単一インスタンス
+├── contexts/AuthContext.jsx  # user, loading, signIn, signUp, signOut
+├── components/PrivateRoute.jsx
+└── pages/
+    ├── LoginPage.jsx / AuthPage.module.css
+    ├── RegisterPage.jsx      # AuthPage.module.css を共有
+    └── PropertiesPage.jsx / PropertiesPage.module.css
+```
 
 ### 環境変数
 
-`.env.local` に以下を設定する（コミットしないこと）:
+`.env` に記載（Git 管理外）。Vite では `VITE_` プレフィックスが必須。
 
 ```
-SUPABASE_URL=https://<project-ref>.supabase.co
-SUPABASE_ANON_KEY=<anon-key>
-SUPABASE_SERVICE_ROLE_KEY=<service-role-key>  # サーバーサイドのみ
+VITE_SUPABASE_URL=...
+VITE_SUPABASE_ANON_KEY=...
 ```
 
-### 認証方針
+### 物件データ
 
-- Supabase Auth を使用（メール＋パスワード、必要に応じて OAuth）
-- RLS (Row Level Security) をすべてのテーブルで有効化し、認証済みユーザーのみ自分のデータにアクセス可能とする
-- `service_role_key` はサーバーサイド処理のみで使用し、クライアントには絶対に露出させない
-
-### DB スキーマ方針
-
-- マイグレーションは `supabase/migrations/` で管理する
-- Supabase CLI でローカル開発環境を立ち上げる
-
-```bash
-supabase start          # ローカル Supabase 起動
-supabase db reset       # ローカル DB をマイグレーションから再構築
-supabase migration new <name>   # 新しいマイグレーション作成
-supabase db push        # リモートへマイグレーション適用
-supabase gen types typescript --local > src/types/database.types.ts  # 型生成
-```
-
-## 主要ドメイン
-
-### 物件 (Property)
-
-検索・一覧・詳細閲覧が中心。想定フィールド:
-- `id`, `title`, `description`, `price`, `address`, `prefecture`, `city`
-- `property_type` (賃貸/売買), `room_type` (1K/1LDK 等)
-- `area_sqm`, `floor`, `building_floors`, `built_year`
-- `images` (Supabase Storage), `created_at`, `updated_at`
-
-### ユーザー (User)
-
-- Supabase Auth の `auth.users` と紐づいた `profiles` テーブルを作成する
-- お気に入り保存などのユーザー固有データは `profiles` または専用テーブルで管理
-
-## アーキテクチャ上の注意点
-
-- **RLS 必須**: 物件データは一般公開可能だが、お気に入り・問い合わせ等はユーザースコープに限定する
-- **型安全**: `supabase gen types` で生成した型を使い、生の SQL 文字列に依存しない
-- **画像**: Supabase Storage の `properties` バケットを使用し、パブリック URL を DB に保存する
+現在は `PropertiesPage.jsx` 内のダミーデータ (`DUMMY_PROPERTIES` 配列)。将来 Supabase の `properties` テーブルに移行する際はここを `supabase.from('properties').select()` に置き換える。
