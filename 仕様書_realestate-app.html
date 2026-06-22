@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>仕様書_realestate-app</title>
+<style>
+  body { font-family: "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif; line-height: 1.7; color: #222; max-width: 920px; margin: 40px auto; padding: 0 20px; }
+  h1 { border-bottom: 3px solid #2c6e9b; padding-bottom: 8px; }
+  h2 { border-bottom: 1px solid #ccc; padding-bottom: 4px; margin-top: 40px; color: #1d4e6f; }
+  h3 { margin-top: 28px; color: #2c6e9b; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+  th, td { border: 1px solid #ccc; padding: 6px 10px; text-align: left; font-size: 0.95em; }
+  th { background: #eef4f8; }
+  code, pre { background: #f5f5f5; border-radius: 4px; }
+  code { padding: 2px 5px; font-size: 0.95em; }
+  pre { padding: 12px; overflow-x: auto; font-size: 0.85em; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.8em; color: #fff; }
+  .badge.done { background: #2e9e5b; }
+  .badge.todo { background: #999; }
+  ul { margin-top: 4px; }
+  .meta { color: #666; font-size: 0.9em; }
+</style>
+</head>
+<body>
+
+<h1>仕様書 realestate-app</h1>
+<p class="meta">最終更新: 2026-06-22</p>
+
+<h2>1. 概要</h2>
+<p>
+Supabase 認証付きの不動産検索 Web アプリ。メール＋パスワードで会員登録・ログインし、
+ログインユーザーごとに物件情報を登録・編集・削除・一覧表示できる。
+</p>
+<ul>
+  <li>フロントエンド: React 18 + Vite</li>
+  <li>認証 / DB: Supabase（Auth + Postgres + RLS）</li>
+  <li>ルーティング: React Router v6</li>
+  <li>スタイル: CSS Modules（ページ単位で <code>*.module.css</code>）</li>
+  <li>本番URL: <a href="https://realestate-app-one-eta.vercel.app/login">https://realestate-app-one-eta.vercel.app/login</a>（Vercel）</li>
+  <li>Supabaseプロジェクト名: realestate-app</li>
+</ul>
+
+<h2>2. 画面構成・画面仕様</h2>
+
+<table>
+<tr><th>パス</th><th>画面</th><th>アクセス制限</th><th>状態</th></tr>
+<tr><td><code>/</code></td><td>（<code>/login</code> へリダイレクト）</td><td>-</td><td><span class="badge done">実装済</span></td></tr>
+<tr><td><code>/login</code></td><td>ログイン</td><td>誰でも</td><td><span class="badge done">実装済</span></td></tr>
+<tr><td><code>/register</code></td><td>会員登録</td><td>誰でも</td><td><span class="badge done">実装済</span></td></tr>
+<tr><td><code>/properties</code></td><td>物件一覧（CRUD）</td><td>ログイン必須</td><td><span class="badge done">実装済</span></td></tr>
+</table>
+
+<h3>2.1 ログイン画面（LoginPage）</h3>
+<ul>
+  <li>入力: メールアドレス・パスワード</li>
+  <li>送信成功時: <code>/properties</code> に遷移</li>
+  <li>失敗時: 「メールアドレスまたはパスワードが正しくありません」を表示</li>
+  <li>会員登録画面へのリンクを表示</li>
+</ul>
+
+<h3>2.2 会員登録画面（RegisterPage）</h3>
+<ul>
+  <li>入力: メールアドレス・パスワード（6文字以上）・パスワード（確認）</li>
+  <li>バリデーション: パスワード一致チェック、6文字以上チェック（クライアント側）</li>
+  <li>登録成功時: フォームを隠し「確認メールを送信しました」というメッセージを表示
+    （Supabase側でメール確認が有効な場合の挙動を想定）</li>
+  <li>ログイン画面へのリンクを表示</li>
+</ul>
+
+<h3>2.3 物件一覧画面（PropertiesPage）</h3>
+<ul>
+  <li>ヘッダー: アプリ名、ログイン中のメールアドレス、ログアウトボタン</li>
+  <li>物件をカード形式（グリッドレイアウト）で表示。各カードに物件名・エリア・家賃（カンマ区切り）・間取りバッジを表示</li>
+  <li>「＋ 物件を登録」ボタン → 新規登録モーダル（PropertyForm）を開く</li>
+  <li>各カードに「編集」「削除」ボタン</li>
+  <li>物件0件のとき: 空状態メッセージ＋「最初の物件を登録する」ボタンを表示</li>
+  <li>取得失敗時: エラーバナーを表示</li>
+  <li>削除時: 確認ダイアログなしで即削除（失敗時は <code>alert</code> でエラー表示）</li>
+</ul>
+
+<h3>2.4 物件登録・編集モーダル（PropertyForm）</h3>
+<ul>
+  <li>入力項目: 物件名・家賃（円・数値）・エリア名・間取り</li>
+  <li>新規登録・編集を共用（<code>property</code> プロパティの有無でモード切替）</li>
+  <li>全項目必須。未入力時は「すべての項目を入力してください」を表示</li>
+  <li>背景クリックまたは✕ボタンで閉じる</li>
+</ul>
+
+<h2>3. 認証フロー</h2>
+<pre>
+App.jsx
+ └─ AuthProvider (AuthContext)   ← Supabase セッションをグローバル管理
+     └─ BrowserRouter
+         ├─ /login       → LoginPage
+         ├─ /register    → RegisterPage
+         └─ /properties  → PrivateRoute → PropertiesPage
+</pre>
+<ul>
+  <li><code>AuthContext</code> が <code>supabase.auth.onAuthStateChange</code> を購読し、
+    <code>user</code> と <code>loading</code> をアプリ全体に提供する</li>
+  <li><code>PrivateRoute</code> は <code>loading === true</code> の間は何も描画せず、
+    セッション確認完了後に未ログインなら <code>/login</code> へリダイレクトする</li>
+  <li>提供されるAPI: <code>signUp(email, password)</code> / <code>signIn(email, password)</code> / <code>signOut()</code></li>
+</ul>
+
+<h2>4. データモデル（Supabase）</h2>
+
+<h3>4.1 properties テーブル</h3>
+<table>
+<tr><th>カラム</th><th>型</th><th>制約</th><th>説明</th></tr>
+<tr><td>id</td><td>uuid</td><td>primary key, default <code>gen_random_uuid()</code></td><td>物件ID</td></tr>
+<tr><td>user_id</td><td>uuid</td><td>not null, references <code>auth.users(id)</code> on delete cascade</td><td>登録者ID</td></tr>
+<tr><td>name</td><td>text</td><td>not null</td><td>物件名</td></tr>
+<tr><td>rent</td><td>integer</td><td>not null, check (rent &gt;= 0)</td><td>家賃（円）</td></tr>
+<tr><td>area</td><td>text</td><td>not null</td><td>エリア名</td></tr>
+<tr><td>room_type</td><td>text</td><td>not null</td><td>間取り（例: 1LDK）</td></tr>
+<tr><td>created_at</td><td>timestamptz</td><td>not null, default <code>now()</code></td><td>登録日時</td></tr>
+</table>
+
+<h3>4.2 RLS（行レベルセキュリティ）ポリシー</h3>
+<table>
+<tr><th>操作</th><th>ポリシー名</th><th>条件</th></tr>
+<tr><td>select</td><td>自分の物件のみ参照可能</td><td><code>auth.uid() = user_id</code></td></tr>
+<tr><td>insert</td><td>自分のuser_idで登録可能</td><td><code>auth.uid() = user_id</code>（with check）</td></tr>
+<tr><td>update</td><td>自分の物件のみ更新可能</td><td><code>auth.uid() = user_id</code>（using / with check）</td></tr>
+<tr><td>delete</td><td>自分の物件のみ削除可能</td><td><code>auth.uid() = user_id</code></td></tr>
+</table>
+<p>定義ファイル: <code>supabase/schema.sql</code>（Supabaseダッシュボード SQL Editor で実行）</p>
+
+<h2>5. API（propertiesApi.js）</h2>
+<table>
+<tr><th>関数</th><th>内容</th></tr>
+<tr><td><code>fetchProperties()</code></td><td>自分が登録した物件を <code>created_at</code> 降順で取得</td></tr>
+<tr><td><code>createProperty({ name, rent, area, room_type })</code></td><td>
+  <code>auth.getUser()</code> で取得した <code>user_id</code> を付与して新規登録</td></tr>
+<tr><td><code>updateProperty(id, { name, rent, area, room_type })</code></td><td>指定IDの物件を更新（RLSで自分の物件のみ）</td></tr>
+<tr><td><code>deleteProperty(id)</code></td><td>指定IDの物件を削除（RLSで自分の物件のみ）</td></tr>
+</table>
+
+<h2>6. ディレクトリ構成</h2>
+<pre>
+src/
+├── lib/
+│   ├── supabaseClient.js     # createClient の単一インスタンス
+│   └── propertiesApi.js      # properties テーブルのCRUD関数
+├── contexts/AuthContext.jsx  # user, loading, signIn, signUp, signOut
+├── components/
+│   ├── PrivateRoute.jsx
+│   └── PropertyForm.jsx      # 新規登録・編集共用モーダル
+└── pages/
+    ├── LoginPage.jsx / AuthPage.module.css
+    ├── RegisterPage.jsx      # AuthPage.module.css を共有
+    └── PropertiesPage.jsx / PropertiesPage.module.css
+
+supabase/
+└── schema.sql                # properties テーブル + RLSポリシー定義
+</pre>
+
+<h2>7. 環境変数</h2>
+<p><code>.env</code>（Git管理外）に記載。Viteでは <code>VITE_</code> プレフィックスが必須。</p>
+<pre>
+VITE_SUPABASE_URL=...
+VITE_SUPABASE_ANON_KEY=...
+</pre>
+
+<h2>8. デプロイ</h2>
+<ul>
+  <li>ホスティング: Vercel</li>
+  <li>本番URL: <a href="https://realestate-app-one-eta.vercel.app/login">https://realestate-app-one-eta.vercel.app/login</a></li>
+  <li><code>vercel.json</code> でSPA用のリライト設定（全パスを <code>/index.html</code> へ）</li>
+</ul>
+
+<h2>9. 既知の制約・今後の課題</h2>
+<ul>
+  <li>物件削除時に確認ダイアログがない（誤操作で即削除される）</li>
+  <li>画像登録機能がなく、カードはプレースホルダー（🏠アイコン）表示のみ</li>
+  <li>物件の検索・絞り込み機能は未実装（一覧表示のみ）</li>
+  <li>会員登録後のメール確認フローはSupabase側の設定（メール確認の有効/無効）に依存しており、本コードでは制御していない</li>
+  <li>テスト: <code>@playwright/test</code> が devDependencies に追加済みだが、テストコード自体は未作成</li>
+</ul>
+
+</body>
+</html>
